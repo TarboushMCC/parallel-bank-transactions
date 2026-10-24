@@ -1,0 +1,216 @@
+PROJECT TITLE: Parallel Bank Transactions & Fraud Detection System (Threads vs Processes)
+
+GOAL:
+Build a Python-based bank transaction system that demonstrates race conditions in parallel execution (threads and processes) and then fixes them using synchronization (locks). The system must also include fraud detection, performance comparison, and plotting.
+
+----------------------------------------
+
+CORE REQUIREMENTS:
+
+1. SHARED DATA STRUCTURES:
+- balances: dictionary mapping account_id → balance
+- ledger: list of processed transactions
+- fraud_flags: list of flagged suspicious transactions
+
+All modes (serial, threads, processes) must operate on the SAME initial dataset.
+
+----------------------------------------
+
+2. TRANSACTION TYPES:
+
+Implement the following functions:
+
+- deposit(account_id, amount)
+    → adds amount to account
+
+- withdraw(account_id, amount)
+    → subtracts amount if balance >= amount
+    → no overdraft allowed (balance must not go below 0)
+
+- transfer(src_account, dst_account, amount)
+    → must be ATOMIC (debit + credit together)
+    → very important for correctness
+
+----------------------------------------
+
+3. FRAUD DETECTION RULES:
+
+Implement simple fraud detection:
+
+- If transaction amount > threshold → flag it
+- If multiple transactions occur on same account within short time → flag it
+
+Append all fraud cases to fraud_flags list.
+
+----------------------------------------
+
+4. RUN MODES (VERY IMPORTANT):
+
+You must implement ALL of the following:
+
+A) SERIAL MODE (BASELINE)
+- Single worker processes all transactions sequentially
+
+B) THREADS MODE
+1. No Lock (intentionally incorrect)
+2. With Lock (correct)
+
+Use:
+- threading.Thread
+- threading.Lock
+
+C) PROCESSES MODE
+1. No Lock (intentionally incorrect)
+2. With Lock (correct)
+
+Use:
+- multiprocessing.Process
+- multiprocessing.Lock
+- multiprocessing.Manager (for shared state)
+
+----------------------------------------
+
+5. RACE CONDITION REQUIREMENT:
+
+You MUST intentionally create a race condition in NO LOCK modes.
+
+Example approach:
+- Read-modify-write pattern:
+    temp = balance
+    temp += amount
+    sleep(0.001)
+    balance = temp
+
+This causes inconsistent results when multiple workers run.
+
+----------------------------------------
+
+6. SYNCHRONIZATION:
+
+Fix race conditions using locks:
+
+- Threads → threading.Lock()
+- Processes → multiprocessing.Lock()
+
+Critical sections:
+- updating balances
+- writing to ledger
+- performing transfer
+
+----------------------------------------
+
+7. TASK DISTRIBUTION:
+
+Use queues:
+
+- Threads:
+    queue.Queue(maxsize=N)
+
+- Processes:
+    multiprocessing.Queue(maxsize=N)
+
+Workers should continuously:
+- take transactions from queue
+- process them
+- update shared data
+
+----------------------------------------
+
+8. CORRECTNESS CHECKS (AFTER EACH RUN):
+
+- No negative balances
+- Final balances must match SERIAL mode
+- If mismatch:
+    print:
+    - number of mismatched accounts
+    - total absolute error
+
+----------------------------------------
+
+9. PERFORMANCE MEASUREMENT:
+
+Measure runtime for each mode using:
+
+- time.time()
+
+Compute:
+
+Speedup:
+Sp = T_serial / T_parallel
+
+Efficiency:
+Ep = Sp / p
+
+Where:
+- p = number of workers (1,2,4,8)
+
+----------------------------------------
+
+10. PLOTTING (MATPLOTLIB REQUIRED):
+
+Generate the following plots:
+
+1. Speedup vs number of workers
+2. Efficiency vs number of workers
+3. Mismatch comparison (No Lock vs Locked)
+4. Fraud flags count per transaction type
+
+----------------------------------------
+
+11. PROGRAM STRUCTURE:
+
+Organize code into:
+
+- transaction generator (random transactions)
+- worker functions
+- serial execution function
+- threaded execution function
+- multiprocessing execution function
+- correctness checker
+- performance analyzer
+- plotting module
+
+----------------------------------------
+
+12. ADDITIONAL NOTES:
+
+- Use the SAME transaction dataset for all runs
+- Include random transactions (deposit, withdraw, transfer)
+- Ensure transfer is atomic in locked versions
+- Print clear logs for:
+    - mode running
+    - runtime
+    - correctness status
+- Code must be clean and well-commented
+
+----------------------------------------
+
+OUTPUT EXPECTATION:
+
+The program should:
+
+1. Run all modes automatically
+2. Print results for each mode
+3. Show incorrect results in NO LOCK modes
+4. Show correct results in LOCKED modes
+5. Display performance metrics
+6. Generate plots using matplotlib
+
+----------------------------------------
+
+LANGUAGE:
+
+Python 3
+
+LIBRARIES:
+
+- threading
+- multiprocessing
+- queue
+- time
+- random
+- matplotlib
+
+----------------------------------------
+
+END OF SPECIFICATION
